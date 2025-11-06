@@ -1,4 +1,4 @@
-function drawScene(gl, programInfo, buffers, cubeRotation) {
+function drawScene(gl, programInfo, buffers, cameraAngle = 0) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
   gl.clearDepth(1.0); // Clear everything
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
@@ -25,46 +25,6 @@ function drawScene(gl, programInfo, buffers, cubeRotation) {
   // as the destination to receive the result.
   mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
 
-  // Set the drawing position to the "identity" point, which is
-  // the center of the scene.
-  const modelViewMatrix = mat4.create();
-
-  // Now move the drawing position a bit to where we want to
-  // start drawing the square.
-  mat4.translate(
-    modelViewMatrix, // destination matrix
-    modelViewMatrix, // matrix to translate
-    [-0.0, 0.0, -6.0]
-  ); // amount to translate
-
-  mat4.rotate(
-    modelViewMatrix, // destination matrix
-    modelViewMatrix, // matrix to rotate
-    cubeRotation, // amount to rotate in radians
-    [0, 0, 1]
-  ); // axis to rotate around (Z)
-  mat4.rotate(
-    modelViewMatrix, // destination matrix
-    modelViewMatrix, // matrix to rotate
-    cubeRotation * 0.7, // amount to rotate in radians
-    [0, 1, 0]
-  ); // axis to rotate around (Y)
-  mat4.rotate(
-    modelViewMatrix, // destination matrix
-    modelViewMatrix, // matrix to rotate
-    cubeRotation * 0.3, // amount to rotate in radians
-    [1, 0, 0]
-  ); // axis to rotate around (X)
-
-  // Tell WebGL how to pull out the positions from the position
-  // buffer into the vertexPosition attribute.
-  setPositionAttribute(gl, buffers, programInfo);
-
-  setColorAttribute(gl, buffers, programInfo);
-
-  // Tell WebGL which indices to use to index the vertices
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
   // Tell WebGL to use our program when drawing
   gl.useProgram(programInfo.program);
 
@@ -74,18 +34,121 @@ function drawScene(gl, programInfo, buffers, cubeRotation) {
     false,
     projectionMatrix
   );
+
+  // Create a view matrix that orbits around the scene
+  const viewMatrix = mat4.create();
+  const cameraRadius = 8.0; // Distance from center
+  const cameraX = Math.sin(cameraAngle) * cameraRadius;
+  const cameraZ = Math.cos(cameraAngle) * cameraRadius;
+
+  // Create view matrix looking at the center
+  mat4.lookAt(
+    viewMatrix,
+    [cameraX, 2.0, cameraZ], // Camera position (orbiting)
+    [0, 0, -6], // Look at point (center of tree)
+    [0, 1, 0] // Up direction
+  );
+
+  // Combine view matrix with projection
+  const viewProjectionMatrix = mat4.create();
+  mat4.multiply(viewProjectionMatrix, projectionMatrix, viewMatrix);
+
+  // Use combined matrix as projection
+  gl.uniformMatrix4fv(
+    programInfo.uniformLocations.projectionMatrix,
+    false,
+    viewProjectionMatrix
+  );
+
+
+   const treeZ = -5.7;
+
+  // Define objects to render with their transformations
+  const objects = [
+    {
+      name: "trunk",
+      buffer: buffers.trunk,
+      position: [0.0, 0.0, treeZ],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+    },
+    {
+      name: "cone",
+      buffer: buffers.cone,
+      position: [0.0, 0.5, treeZ],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+    }, 
+    {
+      name: "box",
+      buffer: buffers.box,
+      position: [0.3, 0.0, treeZ + 0.2],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+    }
+  ];
+
+    if (buffers.decorations) {
+       objects.push(
+      {
+        name: 'ball4',
+        buffer: buffers.decorations.grey,
+        position: [0.0, 1.5, treeZ],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1]
+      },
+    );
+  } else {
+    console.log("Decorations not available - drawing tree without balls");
+  }
+
+
+  // Draw each object
+  objects.forEach((object) => {
+    renderObject(gl, programInfo, object);
+  });
+}
+
+function renderObject(gl, programInfo, object) {
+  const { buffer, position, rotation, scale } = object;
+
+  // Create model-view matrix for this object
+  const modelViewMatrix = mat4.create();
+
+  // Apply transformations
+  mat4.translate(modelViewMatrix, modelViewMatrix, position);
+
+  // Apply rotation (if any)
+  if (rotation[0] !== 0)
+    mat4.rotateX(modelViewMatrix, modelViewMatrix, rotation[0]);
+  if (rotation[1] !== 0)
+    mat4.rotateY(modelViewMatrix, modelViewMatrix, rotation[1]);
+  if (rotation[2] !== 0)
+    mat4.rotateZ(modelViewMatrix, modelViewMatrix, rotation[2]);
+
+  // Apply scale (if any)
+  if (scale[0] !== 1 || scale[1] !== 1 || scale[2] !== 1) {
+    mat4.scale(modelViewMatrix, modelViewMatrix, scale);
+  }
+
+  // Set the model-view matrix uniform
   gl.uniformMatrix4fv(
     programInfo.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix
   );
 
-  {
-    const vertexCount = 36;
-    const type = gl.UNSIGNED_SHORT;
-    const offset = 0;
-    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-  }
+  // Set up attributes
+  setPositionAttribute(gl, buffer, programInfo);
+  setColorAttribute(gl, buffer, programInfo);
+
+  // Bind indices and draw
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer.indices);
+
+  const vertexCount = buffer.vertexCount;
+  const type = gl.UNSIGNED_SHORT;
+  const offset = 0;
+  gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
 }
 
 // Tell WebGL how to pull out the positions from the position
