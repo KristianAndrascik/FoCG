@@ -1,9 +1,14 @@
 import { initBuffers } from "./../init-buffers.js";
 import { drawScene } from "./../draw-scene.js";
+import { initGLContext } from "../gl/GLContext.js";
 
 class App {
-  constructor() {
-    this.gl = null;
+  constructor(canvasId) {
+    
+    this.gl = initGLContext(canvasId);
+    if (!this.gl) throw new Error("WebGL init failed");
+    
+    
     this.programInfo = null;
     this.buffers = null;
     this.rotationAngle = 0;
@@ -11,14 +16,6 @@ class App {
   }
 
   init() {
-    this.canvas = document.querySelector("#gl-canvas");
-    this.gl = this.canvas.getContext("webgl");
-
-    if (this.gl === null) {
-      alert("Unable to initialize WebGL. Your browser or machine may not support it.");
-      return;
-    }
-
     this.setupShaders();
     this.buffers = initBuffers(this.gl);
     drawScene(this.gl, this.programInfo, this.buffers);

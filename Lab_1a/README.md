@@ -9,7 +9,7 @@ The goal of this lab is to create a simple, interactive 3D application that inco
 ## Tasks:
 ### T0: Set up a basic WebGL program
 
-- *Time spent*: 1h 30m
+- *Time spent*: 2h 30m
 - AI usage:
     - Used Microsoft Copilot inside VS Code for code suggestions and completions.
     - ChatGPT-5 [chat](https://chatgpt.com/c/690dd4ce-fc50-832a-8224-4e2e690de61d)
