@@ -1,27 +1,20 @@
-import { initBuffers } from "./../init-buffers.js";
-import { drawScene } from "./../draw-scene.js";
+import { ShaderProgram } from "../gl/ShaderProgram.js";
 import { initGLContext } from "../gl/GLContext.js";
+import { RenderSystem } from "../systems/RenderSystem.js";
+
 
 class App {
   constructor(canvasId) {
-    
     this.gl = initGLContext(canvasId);
     if (!this.gl) throw new Error("WebGL init failed");
-    
-    
-    this.programInfo = null;
-    this.buffers = null;
-    this.rotationAngle = 0;
-    this.canvas = null;
+
+    this.shaderProgram = null;
+    this.renderSystem = null;
   }
 
   init() {
-    this.setupShaders();
-    this.buffers = initBuffers(this.gl);
-    drawScene(this.gl, this.programInfo, this.buffers);
-  }
+    
 
-  setupShaders() {
     const vsSource = `
       attribute vec4 aVertexPosition;
       attribute vec4 aVertexColor;
@@ -41,54 +34,23 @@ class App {
       }
     `;
 
-    const shaderProgram = this.initShaderProgram(this.gl, vsSource, fsSource);
+    this.shaderProgram = new ShaderProgram(this.gl, vsSource, fsSource);
+    this.renderSystem = new RenderSystem(this.gl, this.shaderProgram);
+
+
+    this.loop();
+  } 
+
+  loop(time=0) {
+
+    const deltaTime = time - (this.lastTime || 0);
+    this.lastTime = time;
     
-    this.programInfo = {
-      program: shaderProgram,
-      attribLocations: {
-        vertexPosition: this.gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-        vertexColor: this.gl.getAttribLocation(shaderProgram, "aVertexColor"),
-      },
-      uniformLocations: {
-        projectionMatrix: this.gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
-        modelViewMatrix: this.gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
-      },
-    };
+    this.renderSystem.drawScene(deltaTime);
+    requestAnimationFrame((t) => this.loop(t));
   }
 
-  initShaderProgram(gl, vsSource, fsSource) {
-    const vertexShader = this.loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-      alert(`Unable to initialize the shader program: ${gl.getProgramInfoLog(shaderProgram)}`);
-      return null;
-    }
-
-    return shaderProgram;
+  
   }
-
-  loadShader(gl, type, source) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      alert(`An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`);
-      gl.deleteShader(shader);
-      return null;
-    }
-
-    return shader;
-  }
-
- 
-}
-
 
 export { App };
