@@ -16,15 +16,17 @@ The goal of this lab is to create a simple, interactive 3D application that inco
 
 ### T1: Camera position and 3D-shapes
 
-- *Time spent*: 0h 00m
+- *Time spent*: 2h 30m
 - AI usage:
     - Used Microsoft Copilot inside VS Code for code suggestions and completions.
+    - ChatGPT-5 [chat](https://chatgpt.com/c/6913172a-f978-832c-884f-45a5588e7108)
 
 ### T2: Shading
 
-- *Time spent*: 0h 00m
+- *Time spent*: 0h 30m
 - AI usage:
     - Used Microsoft Copilot inside VS Code for code suggestions and completions.
+    - ChatGPT-5 [chat](https://chatgpt.com/c/WEB:ec6419db-7bab-4035-b312-081c05fc3c05)
 
 ### T3: User interaction
 
