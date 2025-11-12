@@ -6,6 +6,9 @@ import { Camera } from "../scene/Camera.js";
 import { Mesh } from "../scene/Mesh.js";
 import { parseOBJ } from "../loaders/objParser.js";
 import { Light } from "../scene/Light.js";
+import { State } from "./State.js";
+import { Keymap } from "./Keymap.js";
+import { CoordinateAxes } from "../scene/CoordinateAxes.js";
 
 
 export class App {
@@ -15,39 +18,30 @@ export class App {
 
     this.scene = null;
     this.camera = null;
-    this.shaderProgram = null;
+    this.shaderPrograms = {}; // Store multiple shader programs
+    this.currentShader = null;
     this.renderSystem = null;
+    this.state = new State();
+    this.keymap = null; // Will initialize after scene is ready
   }
 
   async init() {
     const gl = this.gl;
 
-    // --- 1. Create shader program ---
-    // Use naming consistent with our Mesh.draw() implementation
-    const vsSource = `
-      attribute vec3 a_position;
-uniform mat4 u_model;
-uniform mat4 u_view;
-uniform mat4 u_projection;
-varying vec3 v_color;
-
-void main() {
-  vec4 clip = u_projection * u_view * u_model * vec4(a_position, 1.0);
-  gl_Position = clip;
-  v_color = clip.xyz / clip.w; // will show if it's inside [-1,1]
-}
-
-    `;
-
-    const fsSource = `
-      precision mediump float;
-varying vec3 v_color;
-void main() {
-  gl_FragColor = vec4(abs(v_color), 1.0);
-}
-    `;
-
-    this.shaderProgram = new ShaderProgram(gl, vsSource, fsSource);
+    // --- 1. Load all shaders ---
+    const [diffuseVS, diffuseFS, specularVS, specularFS, axesVS, axesFS] = await Promise.all([
+      fetch("src/shaders/phongDiffuse.vs.glsl").then(r => r.text()),
+      fetch("src/shaders/phongDiffuse.fs.glsl").then(r => r.text()),
+      fetch("src/shaders/phong.vs.glsl").then(r => r.text()),
+      fetch("src/shaders/phong.fs.glsl").then(r => r.text()),
+      fetch("src/shaders/axes.vs.glsl").then(r => r.text()),
+      fetch("src/shaders/axes.fs.glsl").then(r => r.text()),
+    ]);
+    
+    this.shaderPrograms.diffuse = new ShaderProgram(gl, diffuseVS, diffuseFS);
+    this.shaderPrograms.specular = new ShaderProgram(gl, specularVS, specularFS);
+    this.shaderPrograms.axes = new ShaderProgram(gl, axesVS, axesFS);
+    this.currentShader = this.shaderPrograms.diffuse;
 
     // --- 2. Create scene + camera + light ---
     this.scene = new Scene();
@@ -58,7 +52,7 @@ void main() {
     this.scene.setCamera(this.camera);
     
     const light = new Light({ color: [1, 1, 1], intensity: 1.0 });
-    light.setPosition(0, 10, 0);
+    light.setPosition(0, 2, -10);
     this.scene.setLight(light);
 
     // --- 3. Load OBJ geometry and create meshes ---
@@ -87,7 +81,7 @@ void main() {
       const mesh = new Mesh({
         name: `model_${i}`,
         geometry,
-        program: this.shaderProgram.program,
+        program: this.currentShader.program,
       });
       mesh.upload(gl);
 
@@ -106,21 +100,83 @@ void main() {
       this.scene.add(mesh);
     }
 
-    // Optionally position or rotate the mesh
+    // --- 4. Setup coordinate axes ---
+    const axes = new CoordinateAxes(gl, 1.0);
+    this.scene.setCoordinateAxes(axes, this.shaderPrograms.axes.program);
 
-    // --- 4. Initialize RenderSystem ---
+    // --- 5. Initialize RenderSystem ---
     this.renderSystem = new RenderSystem(gl, this.scene, this.camera);
-    const locPosition = gl.getAttribLocation(
-      this.shaderProgram.program,
-      "a_position"
-    );
-    const locNormal = gl.getAttribLocation(
-      this.shaderProgram.program,
-      "a_normal"
-    );
-    console.log("attrib locations:", { locPosition, locNormal });
     
-    // --- 5. Start render loop ---
+    // --- 6. Setup interaction ---
+    this.keymap = new Keymap(this.state, this);
+    this.setupMouseInteraction();
+    
+    // --- 7. Start render loop ---
     this.renderSystem.start();
+  }
+
+  /**
+   * Switch between diffuse and specular shaders
+   */
+  setShader(mode) {
+    if (mode === 'diffuse' || mode === 'specular') {
+      this.currentShader = this.shaderPrograms[mode];
+      // Update all mesh programs
+      this.scene.nodes.forEach(mesh => {
+        mesh.program = this.currentShader.program;
+      });
+      console.log(`Switched to ${mode} shader`);
+    }
+  }
+
+  /**
+   * Setup mouse drag interaction for camera
+   * Mouse drag is INVERSE of arrow key movement:
+   * - Dragging left → camera moves RIGHT (scene appears to move left)
+   * - Dragging right → camera moves LEFT (scene appears to move right)
+   * - Dragging up → camera moves DOWN (scene appears to move up)
+   * - Dragging down → camera moves UP (scene appears to move down)
+   */
+  setupMouseInteraction() {
+    const canvas = this.gl.canvas;
+    const state = this.state;
+    const camera = this.camera;
+
+    canvas.addEventListener('mousedown', (e) => {
+      state.isDragging = true;
+      state.lastMouseX = e.clientX;
+      state.lastMouseY = e.clientY;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!state.isDragging) return;
+
+      const deltaX = e.clientX - state.lastMouseX;
+      const deltaY = e.clientY - state.lastMouseY;
+
+      // Mouse drag is INVERSE of arrow keys:
+      // - Drag right (positive deltaX) → camera moves LEFT (negative X)
+      // - Drag left (negative deltaX) → camera moves RIGHT (positive X)
+      // - Drag down (positive deltaY) → camera moves UP (positive Y)
+      // - Drag up (negative deltaY) → camera moves DOWN (negative Y)
+      const sensitivity = 0.02;
+      const pos = camera.position;
+      camera.setPosition(
+        pos[0] + deltaX * sensitivity,  // Flip: drag left = camera right (positive X)
+        pos[1] + deltaY * sensitivity,  // Drag down = camera up (positive Y, screen Y inverted)
+        pos[2]
+      );
+
+      state.lastMouseX = e.clientX;
+      state.lastMouseY = e.clientY;
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      state.isDragging = false;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      state.isDragging = false;
+    });
   }
 }

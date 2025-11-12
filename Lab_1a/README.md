@@ -30,9 +30,12 @@ The goal of this lab is to create a simple, interactive 3D application that inco
 
 ### T3: User interaction
 
-- *Time spent*: 0h 00m
+- *Time spent*: 0h 30m
 - AI usage:
-    - Used Microsoft Copilot inside VS Code for code suggestions and completions.
+    - Used GitHub Copilot (VS Code) - model Cluade Sonnet 4.5 for implementing the interactive control system.
+    - Initial Prompt: "Now lets make it interactive. and explain T3: Add user interaction Extend your program to support interactive control of both shapes and lights using the keyboard and mouse. The following features must be implemented: [full T3 specification provided]"
+    -AI Implementation: Copilot generated the complete State management system, Keymap handler with all keyboard controls (model selection 0-9, shading modes r/t, transformation controls for shapes/lights/camera), mouse drag interaction for camera translation, coordinate axes visualization system with RGB color coding, and shader switching infrastructure. The AI created 4 new files (State.js, Keymap.js, CoordinateAxes.js, axes shaders) and integrated everything into the existing App.js and Scene.js architecture.  
+    - Lots of debugging
 
 ### T4: Shadows
 
