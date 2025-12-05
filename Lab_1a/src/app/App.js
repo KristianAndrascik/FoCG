@@ -61,8 +61,8 @@ export class App {
       "src/assets/models/teapot.obj",
       "src/assets/models/bunny.obj",
       "src/assets/models/tetrahedron.obj",
-      "src/assets/models/Rocktopus_Head.obj",
-      "src/assets/models/Rocktopus_Tentacle.obj"
+      //"src/assets/models/Rocktopus_Head.obj",
+      //"src/assets/models/Rocktopus_Tentacle.obj"
     ];
 
     // Load geometries once
@@ -73,9 +73,9 @@ export class App {
       geometries.push({ vertices, normals, faces });
     }
 
-    // Create 9 meshes (3x3 grid) by cycling through the 6 models
+    // Create 9 meshes (3x3 grid) by cycling through the 4 models
     for (let i = 0; i < 9; i++) {
-      const geometryIndex = i % 6; // Cycle through the 6 models
+      const geometryIndex = i % 4; // Cycle through the 4 models
       const geometry = geometries[geometryIndex];
 
       const mesh = new Mesh({
