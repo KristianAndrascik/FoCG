@@ -117,4 +117,181 @@ export class Primitives {
 
         return { vertices, normals, faces: formattedFaces };
     }
+
+    static createSphere(radius = 1, latBands = 20, longBands = 20, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI) {
+        const vertices = [];
+        const normals = [];
+        const faces = [];
+
+        for (let lat = 0; lat <= latBands; lat++) {
+            const theta = thetaStart + (lat / latBands) * thetaLength;
+            const sinTheta = Math.sin(theta);
+            const cosTheta = Math.cos(theta);
+
+            for (let long = 0; long <= longBands; long++) {
+                const phi = phiStart + (long / longBands) * phiLength;
+                const sinPhi = Math.sin(phi);
+                const cosPhi = Math.cos(phi);
+
+                const x = cosPhi * sinTheta;
+                const y = cosTheta;
+                const z = sinPhi * sinTheta;
+
+                vertices.push([radius * x, radius * y, radius * z]);
+                normals.push([x, y, z]);
+            }
+        }
+
+        for (let lat = 0; lat < latBands; lat++) {
+            for (let long = 0; long < longBands; long++) {
+                const first = (lat * (longBands + 1)) + long;
+                const second = first + longBands + 1;
+
+                // Two triangles per quad
+                faces.push([
+                    { vertexIndex: first, normalIndex: first },
+                    { vertexIndex: first + 1, normalIndex: first + 1 },
+                    { vertexIndex: second, normalIndex: second }
+                ]);
+
+                faces.push([
+                    { vertexIndex: second, normalIndex: second },
+                    { vertexIndex: first + 1, normalIndex: first + 1 },
+                    { vertexIndex: second + 1, normalIndex: second + 1 },
+                ]);
+            }
+        }
+
+        return { vertices, normals, faces };
+    }
+
+    static createDisk(radius = 1, segments = 20) {
+        const vertices = [];
+        const normals = [];
+        const faces = [];
+
+        // Center vertex
+        vertices.push([0, 0, 0]);
+        normals.push([0, 1, 0]); // Up
+
+        // Perimeter vertices
+        for (let i = 0; i <= segments; i++) {
+            const theta = (i / segments) * Math.PI * 2;
+            const x = Math.cos(theta) * radius;
+            const z = Math.sin(theta) * radius;
+            vertices.push([x, 0, z]);
+            normals.push([0, 1, 0]);
+        }
+
+        // Faces
+        for (let i = 1; i <= segments; i++) {
+            faces.push([
+                { vertexIndex: 0, normalIndex: 0 },
+                { vertexIndex: i, normalIndex: i },
+                { vertexIndex: i + 1, normalIndex: i + 1 }
+            ]);
+        }
+
+        return { vertices, normals, faces };
+    }
+
+    static createCylinder(radius = 0.5, height = 1, segments = 20) {
+        const vertices = [];
+        const normals = [];
+        const faces = [];
+
+        const halfHeight = height / 2;
+
+        // 1. Top Cap Center
+        vertices.push([0, halfHeight, 0]); 
+        normals.push([0, 1, 0]);
+
+        // 2. Bottom Cap Center
+        vertices.push([0, -halfHeight, 0]);
+        normals.push([0, -1, 0]);
+
+        // 3. Top Ring (for Cap)
+        for (let i = 0; i <= segments; i++) {
+            const theta = (i / segments) * Math.PI * 2;
+            const x = Math.cos(theta) * radius;
+            const z = Math.sin(theta) * radius;
+            vertices.push([x, halfHeight, z]);
+            normals.push([0, 1, 0]);
+        }
+
+        // 4. Bottom Ring (for Cap)
+        for (let i = 0; i <= segments; i++) {
+            const theta = (i / segments) * Math.PI * 2;
+            const x = Math.cos(theta) * radius;
+            const z = Math.sin(theta) * radius;
+            vertices.push([x, -halfHeight, z]);
+            normals.push([0, -1, 0]);
+        }
+
+        // 5. Top Ring (for Side)
+        for (let i = 0; i <= segments; i++) {
+            const theta = (i / segments) * Math.PI * 2;
+            const x = Math.cos(theta) * radius;
+            const z = Math.sin(theta) * radius;
+            vertices.push([x, halfHeight, z]);
+            normals.push([x, 0, z]); // Normal points out
+        }
+
+        // 6. Bottom Ring (for Side)
+        for (let i = 0; i <= segments; i++) {
+            const theta = (i / segments) * Math.PI * 2;
+            const x = Math.cos(theta) * radius;
+            const z = Math.sin(theta) * radius;
+            vertices.push([x, -halfHeight, z]);
+            normals.push([x, 0, z]); // Normal points out
+        }
+
+        // Indices calculation
+        const topCenterIdx = 0;
+        const bottomCenterIdx = 1;
+        const topCapStart = 2;
+        const bottomCapStart = 2 + segments + 1;
+        const sideTopStart = bottomCapStart + segments + 1;
+        const sideBottomStart = sideTopStart + segments + 1;
+
+        // Faces: Top Cap
+        for (let i = 0; i < segments; i++) {
+            faces.push([
+                { vertexIndex: topCenterIdx, normalIndex: topCenterIdx },
+                { vertexIndex: topCapStart + i + 1, normalIndex: topCapStart + i + 1 },
+                { vertexIndex: topCapStart + i, normalIndex: topCapStart + i }
+            ]);
+        }
+
+        // Faces: Bottom Cap
+        for (let i = 0; i < segments; i++) {
+            faces.push([
+                { vertexIndex: bottomCenterIdx, normalIndex: bottomCenterIdx },
+                { vertexIndex: bottomCapStart + i, normalIndex: bottomCapStart + i },
+                { vertexIndex: bottomCapStart + i + 1, normalIndex: bottomCapStart + i + 1 }
+            ]);
+        }
+
+        // Faces: Sides
+        for (let i = 0; i < segments; i++) {
+            const top1 = sideTopStart + i;
+            const top2 = sideTopStart + i + 1;
+            const bottom1 = sideBottomStart + i;
+            const bottom2 = sideBottomStart + i + 1;
+
+            faces.push([
+                { vertexIndex: top1, normalIndex: top1 },
+                { vertexIndex: bottom1, normalIndex: bottom1 },
+                { vertexIndex: top2, normalIndex: top2 }
+            ]);
+
+            faces.push([
+                { vertexIndex: bottom1, normalIndex: bottom1 },
+                { vertexIndex: bottom2, normalIndex: bottom2 },
+                { vertexIndex: top2, normalIndex: top2 }
+            ]);
+        }
+
+        return { vertices, normals, faces };
+    }
 }

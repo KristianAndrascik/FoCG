@@ -1,8 +1,8 @@
 export class LevelParser {
     static parse(text) {
-        const lines = text.trim().split('\n');
+        const lines = text.trim().split(/\r?\n/);
         const height = lines.length;
-        const width = lines[0].length;
+        const width = lines[0].trim().length;
         const map = [];
 
         for (let z = 0; z < height; z++) {
@@ -10,7 +10,7 @@ export class LevelParser {
             const line = lines[z].trim();
             for (let x = 0; x < width; x++) {
                 const char = line[x];
-                if (char === '#') {
+                if (char === '#' || char === undefined) {
                     row.push(1); // Wall
                 } else {
                     row.push(0); // Empty

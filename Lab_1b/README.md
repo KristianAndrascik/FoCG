@@ -30,7 +30,7 @@ The goal of this lab is recreating aspects from the classic game PacMania. This 
 
   * Used Microsoft Copilot inside VS Code for code suggestions and completions.
   * Used GitHub Copilot (VS Code) - model Gemini 3 Pro (Preview) - agent mode. Prompts: 
-    - "add ground plane"
+    - "add ground plane - simple primitive object, positioned at y=0, , dont make it too big"
     - "lets strutcure the code better, move this to more dedecated place."
     - "We cannot see te ground plane, normals are important add them to other directions as well"
     - "edit wind size to utilitize full screen as well"
@@ -38,7 +38,7 @@ The goal of this lab is recreating aspects from the classic game PacMania. This 
     - "change it a litttle bit. hight of box is 0.25 and hight of pyramide 0.75"
     - "now lats create a simple parser for simple puzzles. This should load a puzzle form input file and then in app we will recreate this from our basic building blocks"
     - "great, create more levels"
-    - 
+    - "there is mistake in parser, make it not to fail when there is empty line at the end of file, also trim spaces we dont want extra spaces"
 
   * ChatGPT-5 [chat](https://chatgpt.com/c/6913172a-f978-832c-884f-45a5588e7108)
   
@@ -53,7 +53,11 @@ The goal of this lab is recreating aspects from the classic game PacMania. This 
 * AI usage:
 
   * Used Microsoft Copilot inside VS Code for code suggestions and completions.
-  * ChatGPT-5 [chat](https://chatgpt.com/c/6913172a-f978-832c-884f-45a5588e7108)
+  * Used GitHub Copilot (VS Code) - model Gemini 3 Pro (Preview) - agent mode.
+    chat blob: https://vscode.dev/github/KristianAndrascik/FoCG/blob/mainMzExN2NjYTE5
+
+
+
 
 
 #### T1.3: Animatate Pacman
@@ -61,11 +65,13 @@ The goal of this lab is recreating aspects from the classic game PacMania. This 
 * mouth opening and closing while moving
 * add eye spheres ... moving as well
 
-* *Time spent*: 0h 00m  
+* *Time spent*: 2h 00m  
 * AI usage:
 
   * Used Microsoft Copilot inside VS Code for code suggestions and completions.
-  * Gemini 3 Pro [chat](https://gemini.google.com/app?android-min-version=301356232&ios-min-version=322.0&is_sa=1&campaign_id=test_autosubmit&pt=9008&mt=8&_gl=1*vs02q3*_gcl_au*MjcxODY1NzE3LjE3NjQwODQxNjM.)
+  * Used GitHub Copilot (VS Code) - model Gemini 3 Pro (Preview) - agent mode. 
+    chat blob: https://vscode.dev/github/KristianAndrascik/FoCG/blob/mainMzExN2NjYTE5
+  * too many trials and errors and debugging for some reason
 
 
 ### T2: GRAPHICAL ASPECTS
@@ -84,29 +90,32 @@ The goal of this lab is recreating aspects from the classic game PacMania. This 
     - "We need to adjust the lookAt point as well, so that we are looking slighlty downwards form our position."
     - "But now logiclly when we toggle back to perspective view we want to look at the original lookAt point, calculate offset and apply" 
 
+    chat blob: https://vscode.dev/github/KristianAndrascik/FoCG/blob/mainMzExN2NjYTE5
+
 
 #### T2.2: Shadows
 
-* *Time spent*: 0h 00m
+* *Time spent*: 2h 00m
 * AI usage:
 
-  * Used Microsoft Copilot inside VS Code for code suggestions and completions.
-  * ChatGPT-5 [chat](https://chatgpt.com/c/WEB:ec6419db-7bab-4035-b312-081c05fc3c05)
+  * Used Microsoft Copilot inside VS Code for code suggestions and completions. 
+  * Used GitHub Copilot (VS Code) - model Gemini 3 Pro (Preview) - agent mode. 
+    chat blob: https://vscode.dev/github/KristianAndrascik/FoCG/blob/mainMzExN2NjYTE5
 
 ### T3: GAMING ASPECTS
 
-* *Time spent*: 0h 00m
+* *Time spent*: 3h 00m
 * AI usage:
 
-  * Used GitHub Copilot (VS Code) - model Cluade Sonnet 4.5 for implementing the interactive control system.
-  * Initial Prompt: "Now lets make it interactive. and explain T3: Add user interaction Extend your program to support interactive control of both shapes and lights using the keyboard and mouse. The following features must be implemented: \[full T3 specification provided]"
-    -AI Implementation: Copilot generated the complete State management system, Keymap handler with all keyboard controls (model selection 0-9, shading modes r/t, transformation controls for shapes/lights/camera), mouse drag interaction for camera translation, coordinate axes visualization system with RGB color coding, and shader switching infrastructure. The AI created 4 new files (State.js, Keymap.js, CoordinateAxes.js, axes shaders) and integrated everything into the existing App.js and Scene.js architecture.
+* Used GitHub Copilot (VS Code) - model Gemini 3 Pro (Preview) - agent mode. 
+    chat blob: https://vscode.dev/github/KristianAndrascik/FoCG/blob/mainMzExN2NjYTE5
   * Lots of debugging
 
 ### T4: AVDVANCED GAMING ASPECTS
 
-* I wasn't able to complete this task. ... This version therefore includes only working part up to T3.
-* *Time spent*: 0h 00m
+* 
+* *Time spent*: 2h 00m
 * AI usage:
 
-  * Used Microsoft Copilot inside VS Code for code suggestions and completions.
+  * Used GitHub Copilot (VS Code) - model Gemini 3 Pro (Preview) - agent mode. 
+    chat blob: https://vscode.dev/github/KristianAndrascik/FoCG/blob/mainMzExN2NjYTE5

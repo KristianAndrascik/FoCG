@@ -1,4 +1,5 @@
 import { ShaderProgram } from '../gl/ShaderProgram.js'; 
+import { mat4 } from '../../node_modules/gl-matrix/esm/index.js';
 
 /**
  * RenderSystem
@@ -23,8 +24,13 @@ export class RenderSystem {
     // Time tracking for animation loop
     this._running = false;
     this._lastTime = 0;
+    this.shadowProgram = null;
 
     this._initGL();
+  }
+
+  setShadowProgram(program) {
+    this.shadowProgram = program;
   }
 
   // -------------------------------
@@ -78,8 +84,85 @@ export class RenderSystem {
     // Update viewport and camera aspect
     this.resize();
 
+    // Update scene logic
+    if (this.scene && typeof this.scene.update === 'function') {
+      this.scene.update(deltaMs / 1000.0); // Pass seconds
+    }
+
+    // Update camera follow logic if app has it
+    // We need access to app here, or pass a callback
+    // For now, let's assume the scene update handles it or we hook it up differently.
+    // Actually, let's just add a callback or event.
+    // But simpler: if we have a reference to app update.
+    
+    // Better: The App class should probably drive the update loop or be called by it.
+    // But RenderSystem is currently driving.
+    if (this.onUpdate) {
+        this.onUpdate(deltaMs);
+    }
+
     // Draw the entire scene
     this.scene.draw(gl);
+
+    // Draw shadows
+    if (this.shadowProgram) {
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.depthMask(false); // Don't write to depth buffer for shadows
+      gl.disable(gl.CULL_FACE); // Draw both sides of the shadow
+      
+      // Shadow Matrix Calculation
+      // Use scene light position
+      let Lx = 0, Ly = 10, Lz = 0;
+      if (this.scene.light) {
+          const pos = this.scene.light.getWorldPosition();
+          Lx = pos[0];
+          Ly = pos[1];
+          Lz = pos[2];
+      }
+      
+      // Ground plane is at y = -4. We project slightly above it to avoid z-fighting.
+      const planeY = -3.99; 
+      const A=0, B=1, C=0, D = -planeY; // Plane equation: y + D = 0 => y = -D = planeY
+      
+      const dot = A*Lx + B*Ly + C*Lz + D*1; // Lw=1
+      
+      const shadowMatrix = mat4.create();
+      
+      // M = Dot * I - L * Plane
+      // Note: gl-matrix is column-major.
+      // Indexing: m[col * 4 + row]
+      
+      // Col 0
+      shadowMatrix[0] = dot - Lx * A;
+      shadowMatrix[1] = -Ly * A;
+      shadowMatrix[2] = -Lz * A;
+      shadowMatrix[3] = -1 * A;
+      
+      // Col 1
+      shadowMatrix[4] = -Lx * B;
+      shadowMatrix[5] = dot - Ly * B;
+      shadowMatrix[6] = -Lz * B;
+      shadowMatrix[7] = -1 * B;
+      
+      // Col 2
+      shadowMatrix[8] = -Lx * C;
+      shadowMatrix[9] = -Ly * C;
+      shadowMatrix[10] = dot - Lz * C;
+      shadowMatrix[11] = -1 * C;
+      
+      // Col 3
+      shadowMatrix[12] = -Lx * D;
+      shadowMatrix[13] = -Ly * D;
+      shadowMatrix[14] = -Lz * D;
+      shadowMatrix[15] = dot - 1 * D;
+      
+      this.scene.drawShadows(gl, shadowMatrix, this.shadowProgram);
+      
+      gl.disable(gl.BLEND);
+      gl.depthMask(true);
+      gl.enable(gl.CULL_FACE);
+    }
   }
 
   // -------------------------------

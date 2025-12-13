@@ -24,6 +24,8 @@ export class Node {
     // Hierarchy
     this.parent = null;
     this.children = [];
+    
+    this.castShadow = true;
   }
 
   // --------------------------

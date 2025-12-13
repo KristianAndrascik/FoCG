@@ -60,10 +60,26 @@ export class Keymap {
       return;
     }
 
-    // Toggle camera mode
+    // Jump
     if (key === ' ') {
       event.preventDefault();
-      state.setMode(state.interactionMode === 'camera' ? 'shape' : 'camera');
+      app.triggerJump();
+      return;
+    }
+
+    // ============================================
+    // Ball Movement (Arrow Keys)
+    // ============================================
+    if (app.ball) {
+      if (key === 'ArrowUp') {
+        app.setNextDirection(0, -1);
+      } else if (key === 'ArrowDown') {
+        app.setNextDirection(0, 1);
+      } else if (key === 'ArrowLeft') {
+        app.setNextDirection(-1, 0);
+      } else if (key === 'ArrowRight') {
+        app.setNextDirection(1, 0);
+      }
       return;
     }
 

@@ -150,4 +150,38 @@ export class Mesh extends Node {
   gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0);
 }
 
+drawShadow(gl, shadowMatrix, shadowProgram, camera) {
+  // Calculate world matrix
+  const worldMatrix = this.getWorldMatrix();
+  const finalModelMatrix = mat4.create();
+  mat4.multiply(finalModelMatrix, shadowMatrix, worldMatrix);
+
+  gl.useProgram(shadowProgram.program);
+
+  const view = camera.getViewMatrix();
+  const projection = camera.getProjectionMatrix();
+
+  // Uniforms
+  const uModel = gl.getUniformLocation(shadowProgram.program, "u_model");
+  const uView = gl.getUniformLocation(shadowProgram.program, "u_view");
+  const uProjection = gl.getUniformLocation(shadowProgram.program, "u_projection");
+  const uColor = gl.getUniformLocation(shadowProgram.program, "u_color");
+
+  if (uModel) gl.uniformMatrix4fv(uModel, false, finalModelMatrix);
+  if (uView) gl.uniformMatrix4fv(uView, false, view);
+  if (uProjection) gl.uniformMatrix4fv(uProjection, false, projection);
+  if (uColor) gl.uniform4fv(uColor, [0.0, 0.0, 0.0, 0.8]); // Black shadow with alpha
+
+  // Attributes
+  const aPosLoc = gl.getAttribLocation(shadowProgram.program, "a_position");
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.position);
+  if (aPosLoc !== -1) {
+    gl.enableVertexAttribArray(aPosLoc);
+    gl.vertexAttribPointer(aPosLoc, 3, gl.FLOAT, false, 0, 0);
+  }
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers.index);
+  gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0);
+}
+
 }

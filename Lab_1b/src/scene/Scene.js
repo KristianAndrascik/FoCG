@@ -54,6 +54,14 @@ export class Scene {
     this.selectedIndex = index;
   }
 
+  update(dt) {
+    for (const node of this.nodes) {
+      if (typeof node.update === 'function') {
+        node.update(dt);
+      }
+    }
+  }
+
   draw(gl) {
     if (!this.camera) {
       console.warn("Scene.draw(): no active camera");
@@ -63,19 +71,20 @@ export class Scene {
     const view = this.camera.getViewMatrix();
     const projection = this.camera.getProjectionMatrix();
 
+    // Recursive draw helper
+    const drawNode = (node) => {
+      if (typeof node.draw === 'function') {
+        node.draw(gl, this.camera, this.light);
+      }
+      for (const child of node.children) {
+        drawNode(child);
+      }
+    };
+
     // Draw all meshes
     for (let i = 0; i < this.nodes.length; i++) {
       const node = this.nodes[i];
-      if (typeof node.draw === 'function') {
-        // Pass light + camera to mesh.draw()
-        node.draw(gl, this.camera, this.light);
-      }
-
-      for (const child of node.children) {
-        if (typeof child.draw === 'function') {
-          child.draw(gl, this.camera, this.light);
-        }
-      }
+      drawNode(node);
 
       // Draw local coordinate system for selected model(s)
       if (this.coordinateAxes && this.axesProgram) {
@@ -96,6 +105,27 @@ export class Scene {
       mat4.scale(globalMatrix, globalMatrix, [2, 2, 2]); // Make global axes bigger
       this.coordinateAxes.draw(gl, this.axesProgram, globalMatrix, view, projection);
     }
+  }
+
+  drawShadows(gl, shadowMatrix, shadowProgram) {
+    if (!this.camera) return;
+
+    const drawNodeShadow = (node) => {
+      if (!node.castShadow) return; // Skip if shadow casting is disabled
+
+      if (typeof node.drawShadow === 'function') {
+        node.drawShadow(gl, shadowMatrix, shadowProgram, this.camera);
+      }
+      if (node.children) {
+        node.children.forEach(child => {
+          drawNodeShadow(child);
+        });
+      }
+    };
+
+    this.nodes.forEach(node => {
+      drawNodeShadow(node);
+    });
   }
 }
 
