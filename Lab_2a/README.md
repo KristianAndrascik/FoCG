@@ -46,6 +46,7 @@ I was following this book: [_Ray Tracing in One Weekend_](https://raytracing.git
     - Lab Task: Partial T1 (Basic Geometry).
     - Steps:
         - Follow Book Ch 2 & 3 to build your image writer and vec3 class.
+            - *Time spent*: 1h 00m
         - Follow Book Ch 4 & 5 to create the Ray class and get a generic Red Sphere on the screen.
         - Follow Book Ch 6 to implement Hittable objects and Surface Normals.
         - Lab Action: Now that you have spheres, write your XML Parser (T1) to load sphere positions from a file instead of hard-coding them.
@@ -53,4 +54,4 @@ I was following this book: [_Ray Tracing in One Weekend_](https://raytracing.git
     - *Time spent*: 0h 00m
     - AI usage:
         * Used Microsoft Copilot inside VS Code for code suggestions and completions.
-        * Gemini 3 Pro [chat](https://gemini.google.com/app/0d47984b47e1d1fa)
+        * Gemini 3 Pro [chat](https://gemini.google.com/share/707b8eadcbb0)
