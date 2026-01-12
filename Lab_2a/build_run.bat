@@ -40,8 +40,7 @@ echo ==========================================
 REM Navigate to where Visual Studio puts the executable
 cd Debug
 
-REM Run and save to image.ppm in the main folder
-raytracer.exe > ..\..\image.ppm
+REM Run 
+raytracer.exe 
 
-echo [SUCCESS] Image generated at image.ppm
 pause
