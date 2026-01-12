@@ -17,12 +17,17 @@ std::vector<std::shared_ptr<hittable>> load_obj(const std::string& filename, std
         std::string alt_path = "scene/scenes/" + filename;
         file.open(alt_path);
         if (!file.is_open()) {
-            // Try ../../scene/scenes/ folder (if running from build/Debug)
-            std::string alt_path2 = "../../scene/scenes/" + filename;
-            file.open(alt_path2);
+            // Try ../scene/scenes/ folder (if running from build)
+            std::string alt_path_build = "../scene/scenes/" + filename;
+            file.open(alt_path_build);
             if (!file.is_open()) {
-                std::cerr << "Failed to open OBJ file: " << filename << std::endl;
-                return triangles;
+                // Try ../../scene/scenes/ folder (if running from build/Debug)
+                std::string alt_path2 = "../../scene/scenes/" + filename;
+                file.open(alt_path2);
+                if (!file.is_open()) {
+                    std::cerr << "Failed to open OBJ file: " << filename << std::endl;
+                    return triangles;
+                }
             }
         }
     }

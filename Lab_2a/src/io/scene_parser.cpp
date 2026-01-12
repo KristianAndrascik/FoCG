@@ -59,6 +59,10 @@ std::shared_ptr<Material> parse_material(XMLElement* surf) {
                     data = stbi_load(alt.c_str(), &w, &h, &c, 3);
                 }
                 if (!data) {
+                    std::string alt_build = "../scene/scenes/" + filename;
+                    data = stbi_load(alt_build.c_str(), &w, &h, &c, 3);
+                }
+                if (!data) {
                     std::string alt2 = "../../scene/scenes/" + filename;
                     data = stbi_load(alt2.c_str(), &w, &h, &c, 3);
                 }
